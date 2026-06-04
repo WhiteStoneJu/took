@@ -1,12 +1,20 @@
 import ActivityKit
 import Foundation
 
+struct TodoActivityItem: Identifiable, Codable, Hashable, Sendable {
+    var id: UUID
+    var title: String
+    var createdAt: Date
+}
+
 struct TodoActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable, Sendable {
-        var todoID: UUID
-        var title: String
-        var createdAt: Date
+        var todos: [TodoActivityItem]
         var updatedAt: Date
+
+        var primaryTodo: TodoActivityItem? {
+            todos.first
+        }
     }
 
     var listName: String
@@ -22,7 +30,9 @@ enum TodoActivitySynchronizer {
 
         let activities = Activity<TodoActivityAttributes>.activities
 
-        guard let activeTodo = SharedTodoStore.activeTodo() else {
+        let openTodos = SharedTodoStore.openTodos(limit: 5)
+
+        guard !openTodos.isEmpty else {
             for activity in activities {
                 await activity.end(nil, dismissalPolicy: .immediate)
             }
@@ -31,9 +41,13 @@ enum TodoActivitySynchronizer {
 
         let content = ActivityContent(
             state: TodoActivityAttributes.ContentState(
-                todoID: activeTodo.id,
-                title: activeTodo.title,
-                createdAt: activeTodo.createdAt,
+                todos: openTodos.map { todo in
+                    TodoActivityItem(
+                        id: todo.id,
+                        title: todo.title,
+                        createdAt: todo.createdAt
+                    )
+                },
                 updatedAt: Date()
             ),
             staleDate: Date().addingTimeInterval(staleInterval)
@@ -61,4 +75,3 @@ enum TodoActivitySynchronizer {
         #endif
     }
 }
-

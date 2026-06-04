@@ -2,6 +2,45 @@ import AppIntents
 import Foundation
 import WidgetKit
 
+struct TodoEntity: AppEntity {
+    static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Todo")
+    static let defaultQuery = TodoEntityQuery()
+
+    let id: String
+    let title: String
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(title)")
+    }
+
+    init(id: String, title: String) {
+        self.id = id
+        self.title = title
+    }
+
+    init(todo: TodoItem) {
+        self.id = todo.id.uuidString
+        self.title = todo.title
+    }
+
+    init(activityItem: TodoActivityItem) {
+        self.id = activityItem.id.uuidString
+        self.title = activityItem.title
+    }
+}
+
+struct TodoEntityQuery: EntityQuery {
+    func entities(for identifiers: [TodoEntity.ID]) async throws -> [TodoEntity] {
+        SharedTodoStore.loadTodos()
+            .filter { identifiers.contains($0.id.uuidString) }
+            .map(TodoEntity.init(todo:))
+    }
+
+    func suggestedEntities() async throws -> [TodoEntity] {
+        SharedTodoStore.openTodos(limit: 10).map(TodoEntity.init(todo:))
+    }
+}
+
 private enum TodoIntentSync {
     static func refreshSurfaces() async {
         await TodoActivitySynchronizer.syncFromStore()
@@ -36,21 +75,21 @@ struct AddTodoIntent: AppIntent {
     }
 }
 
-struct CompleteTodoIntent: AppIntent {
+struct CompleteTodoIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Complete Todo"
     static let description = IntentDescription("Complete a specific Took todo.")
 
-    @Parameter(title: "Todo ID")
-    var todoID: String
+    @Parameter(title: "Todo")
+    var todo: TodoEntity
 
     init() {}
 
-    init(todoID: String) {
-        self.todoID = todoID
+    init(todo: TodoEntity) {
+        self.todo = todo
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard let id = UUID(uuidString: todoID) else {
+        guard let id = UUID(uuidString: todo.id) else {
             return .result(dialog: "Todo was unavailable.")
         }
 

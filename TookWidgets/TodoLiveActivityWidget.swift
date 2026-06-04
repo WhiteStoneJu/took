@@ -12,22 +12,24 @@ struct TodoLiveActivityWidget: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Image(systemName: "checklist")
-                        .font(.title2)
+                    Text("\(context.state.todos.count)")
+                        .font(.title2.weight(.bold))
                 }
 
                 DynamicIslandExpandedRegion(.center) {
-                    Text(context.state.title)
+                    Text(context.state.primaryTodo?.title ?? "Took")
                         .font(.headline)
                         .lineLimit(2)
                         .minimumScaleFactor(0.7)
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
-                    Button(intent: CompleteTodoIntent(todoID: context.state.todoID.uuidString)) {
-                        Image(systemName: "checkmark.circle.fill")
+                    if let todo = context.state.primaryTodo {
+                        Button(intent: CompleteTodoIntent(todo: TodoEntity(activityItem: todo))) {
+                            Image(systemName: "circle")
+                        }
+                        .tint(.white)
                     }
-                    .tint(.green)
                 }
 
                 DynamicIslandExpandedRegion(.bottom) {
@@ -36,14 +38,18 @@ struct TodoLiveActivityWidget: Widget {
                     }
                 }
             } compactLeading: {
-                Image(systemName: "checklist")
+                Text("\(context.state.todos.count)")
+                    .font(.caption.weight(.bold))
             } compactTrailing: {
-                Button(intent: CompleteTodoIntent(todoID: context.state.todoID.uuidString)) {
-                    Image(systemName: "checkmark")
+                if let todo = context.state.primaryTodo {
+                    Button(intent: CompleteTodoIntent(todo: TodoEntity(activityItem: todo))) {
+                        Image(systemName: "circle")
+                    }
+                    .tint(.white)
                 }
-                .tint(.green)
             } minimal: {
-                Image(systemName: "checkmark.circle")
+                Text("\(context.state.todos.count)")
+                    .font(.caption2.weight(.bold))
             }
         }
     }
@@ -68,22 +74,27 @@ private struct LockScreenTodoActivityView: View {
                 .accessibilityLabel("Quick Add")
             }
 
-            Text(state.title)
-                .font(.system(size: 38, weight: .heavy, design: .rounded))
-                .foregroundStyle(.white)
-                .lineLimit(3)
-                .minimumScaleFactor(0.42)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(state.todos) { todo in
+                    HStack(spacing: 12) {
+                        Button(intent: CompleteTodoIntent(todo: TodoEntity(activityItem: todo))) {
+                            Image(systemName: "circle")
+                                .font(.title2.weight(.semibold))
+                        }
+                        .buttonStyle(.plain)
+                        .tint(.white)
+                        .accessibilityLabel("Complete \(todo.title)")
 
-            Button(intent: CompleteTodoIntent(todoID: state.todoID.uuidString)) {
-                Label("Done", systemImage: "checkmark.circle.fill")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
+                        Text(todo.title)
+                            .font(.system(size: state.todos.count == 1 ? 34 : 22, weight: .heavy, design: .rounded))
+                            .foregroundStyle(.white)
+                            .lineLimit(state.todos.count == 1 ? 3 : 1)
+                            .minimumScaleFactor(0.55)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.green)
         }
         .padding(18)
     }
 }
-

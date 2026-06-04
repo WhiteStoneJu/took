@@ -61,6 +61,10 @@ enum SharedTodoStore {
         loadTodos().first { !$0.isCompleted }
     }
 
+    static func openTodos(limit: Int = 5) -> [TodoItem] {
+        Array(loadTodos().filter { !$0.isCompleted }.prefix(limit))
+    }
+
     @discardableResult
     static func addTodo(title: String) -> TodoItem? {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
