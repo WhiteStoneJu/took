@@ -93,8 +93,8 @@ struct TookShortcutsProvider: AppShortcutsProvider {
         AppShortcut(
             intent: AddTodoIntent(),
             phrases: [
-                "Add \(\.$title) to \(.applicationName)",
-                "In \(.applicationName), add \(\.$title)"
+                "Add a todo to \(.applicationName)",
+                "Create a todo in \(.applicationName)"
             ],
             shortTitle: "Add Todo",
             systemImageName: "plus.circle"
