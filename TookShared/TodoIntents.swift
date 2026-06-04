@@ -10,8 +10,8 @@ private enum TodoIntentSync {
 }
 
 struct AddTodoIntent: AppIntent {
-    static var title: LocalizedStringResource = "Add Todo"
-    static var description = IntentDescription("Add a new todo to Took.")
+    static let title: LocalizedStringResource = "Add Todo"
+    static let description = IntentDescription("Add a new todo to Took.")
 
     @Parameter(title: "Todo")
     var title: String
@@ -37,8 +37,8 @@ struct AddTodoIntent: AppIntent {
 }
 
 struct CompleteTodoIntent: AppIntent {
-    static var title: LocalizedStringResource = "Complete Todo"
-    static var description = IntentDescription("Complete a specific Took todo.")
+    static let title: LocalizedStringResource = "Complete Todo"
+    static let description = IntentDescription("Complete a specific Took todo.")
 
     @Parameter(title: "Todo ID")
     var todoID: String
@@ -61,8 +61,8 @@ struct CompleteTodoIntent: AppIntent {
 }
 
 struct CompleteCurrentTodoIntent: AppIntent {
-    static var title: LocalizedStringResource = "Complete Current Todo"
-    static var description = IntentDescription("Complete the current Took todo.")
+    static let title: LocalizedStringResource = "Complete Current Todo"
+    static let description = IntentDescription("Complete the current Took todo.")
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         guard SharedTodoStore.completeCurrentTodo() != nil else {
@@ -75,9 +75,9 @@ struct CompleteCurrentTodoIntent: AppIntent {
 }
 
 struct OpenQuickAddIntent: AppIntent {
-    static var title: LocalizedStringResource = "Quick Add Todo"
-    static var description = IntentDescription("Open Took directly to the todo input window.")
-    static var openAppWhenRun: Bool = true
+    static let title: LocalizedStringResource = "Quick Add Todo"
+    static let description = IntentDescription("Open Took directly to the todo input window.")
+    static let openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
         SharedTodoStore.requestQuickAddPresentation()
@@ -87,7 +87,7 @@ struct OpenQuickAddIntent: AppIntent {
 
 #if TOOK_APP
 struct TookShortcutsProvider: AppShortcutsProvider {
-    static var shortcutTileColor: ShortcutTileColor = .blue
+    static let shortcutTileColor: ShortcutTileColor = .blue
 
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
