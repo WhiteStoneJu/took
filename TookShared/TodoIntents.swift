@@ -1,0 +1,124 @@
+import AppIntents
+import Foundation
+import WidgetKit
+
+private enum TodoIntentSync {
+    static func refreshSurfaces() async {
+        await TodoActivitySynchronizer.syncFromStore()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+}
+
+struct AddTodoIntent: AppIntent {
+    static var title: LocalizedStringResource = "Add Todo"
+    static var description = IntentDescription("Add a new todo to Took.")
+
+    @Parameter(title: "Todo")
+    var title: String
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Add \(\.$title)")
+    }
+
+    init() {}
+
+    init(title: String) {
+        self.title = title
+    }
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let todo = SharedTodoStore.addTodo(title: title) else {
+            return .result(dialog: "Todo was empty.")
+        }
+
+        await TodoIntentSync.refreshSurfaces()
+        return .result(dialog: "Added \(todo.title).")
+    }
+}
+
+struct CompleteTodoIntent: AppIntent {
+    static var title: LocalizedStringResource = "Complete Todo"
+    static var description = IntentDescription("Complete a specific Took todo.")
+
+    @Parameter(title: "Todo ID")
+    var todoID: String
+
+    init() {}
+
+    init(todoID: String) {
+        self.todoID = todoID
+    }
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard let id = UUID(uuidString: todoID) else {
+            return .result(dialog: "Todo was unavailable.")
+        }
+
+        _ = SharedTodoStore.completeTodo(id: id)
+        await TodoIntentSync.refreshSurfaces()
+        return .result(dialog: "Done.")
+    }
+}
+
+struct CompleteCurrentTodoIntent: AppIntent {
+    static var title: LocalizedStringResource = "Complete Current Todo"
+    static var description = IntentDescription("Complete the current Took todo.")
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        guard SharedTodoStore.completeCurrentTodo() != nil else {
+            return .result(dialog: "No current todo.")
+        }
+
+        await TodoIntentSync.refreshSurfaces()
+        return .result(dialog: "Done.")
+    }
+}
+
+struct OpenQuickAddIntent: AppIntent {
+    static var title: LocalizedStringResource = "Quick Add Todo"
+    static var description = IntentDescription("Open Took directly to the todo input window.")
+    static var openAppWhenRun: Bool = true
+
+    func perform() async throws -> some IntentResult {
+        SharedTodoStore.requestQuickAddPresentation()
+        return .result()
+    }
+}
+
+#if TOOK_APP
+struct TookShortcutsProvider: AppShortcutsProvider {
+    static var shortcutTileColor: ShortcutTileColor = .blue
+
+    static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: AddTodoIntent(),
+            phrases: [
+                "Add \(\.$title) to \(.applicationName)",
+                "In \(.applicationName), add \(\.$title)"
+            ],
+            shortTitle: "Add Todo",
+            systemImageName: "plus.circle"
+        )
+
+        AppShortcut(
+            intent: OpenQuickAddIntent(),
+            phrases: [
+                "Quick add in \(.applicationName)",
+                "Open \(.applicationName) quick add"
+            ],
+            shortTitle: "Quick Add",
+            systemImageName: "square.and.pencil"
+        )
+
+        AppShortcut(
+            intent: CompleteCurrentTodoIntent(),
+            phrases: [
+                "Complete current todo in \(.applicationName)",
+                "Check off \(.applicationName)"
+            ],
+            shortTitle: "Complete Todo",
+            systemImageName: "checkmark.circle"
+        )
+    }
+}
+#endif
