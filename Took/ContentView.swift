@@ -186,9 +186,99 @@ private struct SettingsView: View {
                     LiveActivityThemePreview(theme: store.liveActivityTheme)
                         .listRowInsets(EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12))
                 }
+
+                Section("Shortcuts") {
+                    NavigationLink {
+                        ShortcutHotkeyGuideView()
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("단축어 활용하기")
+                                Text("액션 버튼, 위젯, 뒷면 탭, Siri 연결")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "bolt.circle.fill")
+                                .foregroundStyle(.orange)
+                        }
+                    }
+                }
             }
             .navigationTitle("Settings")
         }
+    }
+}
+
+private struct ShortcutHotkeyGuideView: View {
+    @Environment(\.openURL) private var openURL
+
+    private let shortcutsURL = URL(string: "shortcuts://")!
+
+    var body: some View {
+        List {
+            Section {
+                Button {
+                    openURL(shortcutsURL)
+                } label: {
+                    Label("단축어 앱 열기", systemImage: "bolt.fill")
+                        .font(.headline)
+                }
+            } footer: {
+                Text("Took 단축어가 안 보이면 Took을 한 번 실행한 뒤 단축어 앱을 다시 열어주세요.")
+            }
+
+            Section("빠른 실행 연결") {
+                ShortcutUseRow(
+                    systemImage: "circle.circle",
+                    title: "액션 버튼에 연결",
+                    detail: "설정 > 액션 버튼 > 단축어에서 Took의 Quick Add Todo를 선택하세요."
+                )
+
+                ShortcutUseRow(
+                    systemImage: "square.grid.2x2.fill",
+                    title: "위젯으로 실행",
+                    detail: "홈 화면이나 잠금화면에 단축어 위젯을 추가하고 Took의 Quick Add Todo를 지정하세요."
+                )
+
+                ShortcutUseRow(
+                    systemImage: "hand.tap.fill",
+                    title: "뒷면 탭으로 실행",
+                    detail: "설정 > 손쉬운 사용 > 터치 > 뒷면 탭에서 Took 단축어를 연결하세요."
+                )
+
+                ShortcutUseRow(
+                    systemImage: "mic.fill",
+                    title: "Siri로 추가",
+                    detail: "\"Quick add in Took\" 또는 \"Add a todo to Took\"이라고 말하면 바로 추가할 수 있어요."
+                )
+            }
+        }
+        .navigationTitle("단축어 활용하기")
+    }
+}
+
+private struct ShortcutUseRow: View {
+    let systemImage: String
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundStyle(.orange)
+                .frame(width: 30, alignment: .center)
+
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title)
+                    .font(.headline)
+                Text(detail)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 8)
     }
 }
 
