@@ -31,7 +31,13 @@ final class TodoStore: ObservableObject {
 
     var availableDates: [Date] {
         let calendar = Calendar.current
-        let days = Set(todos.map { calendar.startOfDay(for: $0.createdAt) })
+        let days = Set(todos.flatMap { todo in
+            var dates = [calendar.startOfDay(for: todo.createdAt)]
+            if let completedAt = todo.completedAt {
+                dates.append(calendar.startOfDay(for: completedAt))
+            }
+            return dates
+        })
         return days.sorted(by: >)
     }
 
@@ -54,7 +60,13 @@ final class TodoStore: ObservableObject {
     }
 
     func completedTodos(on date: Date) -> [TodoItem] {
-        todos(on: date).filter { $0.isCompleted && !completingTodoIDs.contains($0.id) }
+        todos.filter { todo in
+            guard let completedAt = todo.completedAt, !completingTodoIDs.contains(todo.id) else {
+                return false
+            }
+
+            return Calendar.current.isDate(completedAt, inSameDayAs: date)
+        }
     }
 
     func isCompleting(_ todo: TodoItem) -> Bool {
