@@ -47,9 +47,7 @@ private struct TodoWidgetView: View {
                 systemView
             }
         }
-        .containerBackground(for: .widget) {
-            Color(.systemBackground)
-        }
+        .widgetCompatibleBackground(Color(.systemBackground))
         .widgetURL(AppConstants.quickAddURL)
     }
 
@@ -82,5 +80,18 @@ private struct TodoWidgetView: View {
                 .foregroundStyle(.secondary)
         }
         .padding()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func widgetCompatibleBackground(_ color: Color) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(for: .widget) {
+                color
+            }
+        } else {
+            self.background(color)
+        }
     }
 }

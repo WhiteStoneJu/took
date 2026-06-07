@@ -13,5 +13,11 @@ enum LiveActivityController {
         await TodoActivitySynchronizer.syncFromStore()
         WidgetCenter.shared.reloadAllTimelines()
     }
-}
 
+    static func refreshAfterCompletion() {
+        Task {
+            await TodoActivitySynchronizer.syncAfterCompletion()
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+}

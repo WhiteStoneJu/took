@@ -1,15 +1,19 @@
 import Combine
 import Foundation
+import SwiftUI
 
 @MainActor
 final class TodoStore: ObservableObject {
     @Published private(set) var todos: [TodoItem] = []
+    @Published private(set) var completingTodoIDs: Set<UUID> = []
+    @Published var liveActivityTheme: LiveActivityTheme = .defaultValue
     @Published var draftTitle = ""
     @Published var isQuickAddPresented = false
     @Published var selectedFilter: TodoFilter = .open
+    @Published var selectedDate = Date()
 
     var currentTodo: TodoItem? {
-        todos.first { !$0.isCompleted }
+        openTodos(on: Date()).first ?? todos.first { !$0.isCompleted }
     }
 
     var visibleTodos: [TodoItem] {
@@ -21,12 +25,40 @@ final class TodoStore: ObservableObject {
         }
     }
 
+    var todayTodos: [TodoItem] {
+        todos(on: Date())
+    }
+
+    var availableDates: [Date] {
+        let calendar = Calendar.current
+        let days = Set(todos.map { calendar.startOfDay(for: $0.createdAt) })
+        return days.sorted(by: >)
+    }
+
     init() {
         reload()
     }
 
     func reload() {
         todos = SharedTodoStore.loadTodos()
+        liveActivityTheme = SharedTodoStore.loadLiveActivityTheme()
+    }
+
+    func todos(on date: Date) -> [TodoItem] {
+        let calendar = Calendar.current
+        return todos.filter { calendar.isDate($0.createdAt, inSameDayAs: date) }
+    }
+
+    func openTodos(on date: Date) -> [TodoItem] {
+        todos(on: date).filter { !$0.isCompleted || completingTodoIDs.contains($0.id) }
+    }
+
+    func completedTodos(on date: Date) -> [TodoItem] {
+        todos(on: date).filter { $0.isCompleted && !completingTodoIDs.contains($0.id) }
+    }
+
+    func isCompleting(_ todo: TodoItem) -> Bool {
+        completingTodoIDs.contains(todo.id)
     }
 
     func presentQuickAdd(prefill: String? = nil) {
@@ -70,9 +102,26 @@ final class TodoStore: ObservableObject {
     }
 
     func complete(_ todo: TodoItem) {
+        guard !completingTodoIDs.contains(todo.id) else {
+            return
+        }
+
+        withAnimation(.easeInOut(duration: 0.25)) {
+            completingTodoIDs.insert(todo.id)
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
+            Task { @MainActor in
+                self?.finishCompletion(for: todo)
+            }
+        }
+    }
+
+    private func finishCompletion(for todo: TodoItem) {
         _ = SharedTodoStore.completeTodo(id: todo.id)
+        completingTodoIDs.remove(todo.id)
         reload()
-        LiveActivityController.refresh()
+        LiveActivityController.refreshAfterCompletion()
     }
 
     func delete(_ todo: TodoItem) {
@@ -85,5 +134,23 @@ final class TodoStore: ObservableObject {
         SharedTodoStore.clearCompleted()
         reload()
         LiveActivityController.refresh()
+    }
+
+    func updateLiveActivityTheme(_ theme: LiveActivityTheme) {
+        liveActivityTheme = theme
+        SharedTodoStore.saveLiveActivityTheme(theme)
+        LiveActivityController.refresh()
+    }
+
+    func updateLiveActivityTransparency(_ isTransparent: Bool) {
+        var theme = liveActivityTheme
+        theme.isTransparent = isTransparent
+        updateLiveActivityTheme(theme)
+    }
+
+    func updateLiveActivityTextColor(_ textColor: LiveActivityTextColor) {
+        var theme = liveActivityTheme
+        theme.textColor = textColor
+        updateLiveActivityTheme(theme)
     }
 }

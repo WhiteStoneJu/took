@@ -2,7 +2,7 @@ import AppIntents
 import Foundation
 import WidgetKit
 
-struct TodoEntity: AppEntity {
+struct TodoEntity: AppEntity, Sendable {
     static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Todo")
     static let defaultQuery = TodoEntityQuery()
 
@@ -29,7 +29,7 @@ struct TodoEntity: AppEntity {
     }
 }
 
-struct TodoEntityQuery: EntityQuery {
+struct TodoEntityQuery: EntityQuery, Sendable {
     func entities(for identifiers: [TodoEntity.ID]) async throws -> [TodoEntity] {
         SharedTodoStore.loadTodos()
             .filter { identifiers.contains($0.id.uuidString) }
@@ -44,6 +44,11 @@ struct TodoEntityQuery: EntityQuery {
 private enum TodoIntentSync {
     static func refreshSurfaces() async {
         await TodoActivitySynchronizer.syncFromStore()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    static func refreshAfterCompletion() async {
+        await TodoActivitySynchronizer.syncAfterCompletion()
         WidgetCenter.shared.reloadAllTimelines()
     }
 }
@@ -75,6 +80,7 @@ struct AddTodoIntent: AppIntent {
     }
 }
 
+@available(iOS 17.0, iOSApplicationExtension 17.0, *)
 struct CompleteTodoIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Complete Todo"
     static let description = IntentDescription("Complete a specific Took todo.")
@@ -94,7 +100,7 @@ struct CompleteTodoIntent: LiveActivityIntent {
         }
 
         _ = SharedTodoStore.completeTodo(id: id)
-        await TodoIntentSync.refreshSurfaces()
+        await TodoIntentSync.refreshAfterCompletion()
         return .result(dialog: "Done.")
     }
 }
@@ -108,7 +114,7 @@ struct CompleteCurrentTodoIntent: AppIntent {
             return .result(dialog: "No current todo.")
         }
 
-        await TodoIntentSync.refreshSurfaces()
+        await TodoIntentSync.refreshAfterCompletion()
         return .result(dialog: "Done.")
     }
 }

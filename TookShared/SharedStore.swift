@@ -5,6 +5,40 @@ enum AppConstants {
     static let quickAddURL = URL(string: "took://quick-add")!
 }
 
+enum LiveActivityTextColor: String, CaseIterable, Identifiable, Codable, Sendable {
+    case white
+    case black
+    case mint
+    case yellow
+    case blue
+
+    var id: String {
+        rawValue
+    }
+
+    var displayName: String {
+        switch self {
+        case .white:
+            "White"
+        case .black:
+            "Black"
+        case .mint:
+            "Mint"
+        case .yellow:
+            "Yellow"
+        case .blue:
+            "Blue"
+        }
+    }
+}
+
+struct LiveActivityTheme: Codable, Hashable, Sendable {
+    var isTransparent: Bool
+    var textColor: LiveActivityTextColor
+
+    static let defaultValue = LiveActivityTheme(isTransparent: false, textColor: .white)
+}
+
 struct TodoItem: Identifiable, Codable, Hashable, Sendable {
     let id: UUID
     var title: String
@@ -27,6 +61,7 @@ enum SharedTodoStore {
     static let storeDidChangeNotification = Notification.Name("SharedTodoStoreDidChangeNotification")
 
     private static let todosKey = "todos.v1"
+    private static let liveActivityThemeKey = "liveActivityTheme.v1"
     private static let quickAddRequestKey = "quickAddRequest.v1"
     private static let versionKey = "todos.version.v1"
 
@@ -63,6 +98,44 @@ enum SharedTodoStore {
 
     static func openTodos(limit: Int = 5) -> [TodoItem] {
         Array(loadTodos().filter { !$0.isCompleted }.prefix(limit))
+    }
+
+    static func activityTodos(limit: Int = 5, includeRecentlyCompleted: Bool = false, now: Date = Date()) -> [TodoItem] {
+        let recentCompletionCutoff = now.addingTimeInterval(-2)
+        let todos = loadTodos().filter { todo in
+            if !todo.isCompleted {
+                return true
+            }
+
+            guard includeRecentlyCompleted, let completedAt = todo.completedAt else {
+                return false
+            }
+
+            return completedAt >= recentCompletionCutoff
+        }
+
+        return Array(todos.prefix(limit))
+    }
+
+    static func loadLiveActivityTheme() -> LiveActivityTheme {
+        guard
+            let data = defaults.data(forKey: liveActivityThemeKey),
+            let theme = try? decoder.decode(LiveActivityTheme.self, from: data)
+        else {
+            return .defaultValue
+        }
+
+        return theme
+    }
+
+    static func saveLiveActivityTheme(_ theme: LiveActivityTheme) {
+        guard let data = try? encoder.encode(theme) else {
+            return
+        }
+
+        defaults.set(data, forKey: liveActivityThemeKey)
+        defaults.set(Date().timeIntervalSince1970, forKey: versionKey)
+        defaults.synchronize()
     }
 
     @discardableResult
