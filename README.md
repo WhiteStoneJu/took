@@ -1,20 +1,22 @@
 # Took
 
-Took is a native SwiftUI todo app prototype for iOS 26.
+Took is a native SwiftUI todo app prototype for modern iOS.
 
 Core behavior:
 
 - Add todos in the app.
 - Add todos through App Shortcuts / Shortcuts using `Add Todo`.
-- Keep the top incomplete todo visible in a Live Activity on the Lock Screen.
-- Check the visible todo from the Live Activity using an App Intent button.
+- Keep incomplete todos visible in a Live Activity on the Lock Screen.
+- Check visible todos from the Live Activity on iOS 17 or later.
 - Open the app into quick-add mode from the Live Activity or widget URL.
+- Browse remaining and completed todos by date.
+- Customize the Lock Screen Live Activity background transparency and text color.
 - Assign iPhone Action Button to the `Quick Add Todo` shortcut so a long press opens Took's input sheet.
 
 ## Requirements
 
 - macOS with Xcode 26 or later.
-- iOS 26 simulator or device.
+- iOS 16.2 or later simulator or device.
 - An Apple Developer team configured in Xcode for App Groups and Live Activities.
 
 ## Setup
@@ -29,7 +31,7 @@ Core behavior:
    - `Took/Took.entitlements`
    - `TookWidgets/TookWidgets.entitlements`
    - `TookShared/SharedStore.swift`
-5. Run the `Took` scheme on an iOS 26 simulator or device.
+5. Run the `Took` scheme on an iOS 16.2 or later simulator or device.
 
 For detailed Mac-to-iPhone installation steps, see `INSTALL_ON_MAC_AND_IPHONE.md`.
 
@@ -46,4 +48,4 @@ After that, long-pressing the Action Button opens Took directly to the quick tod
 
 ## Platform Note
 
-iOS Live Activities can show information and run limited interactive App Intent controls, such as a check button. They cannot present arbitrary free-text entry directly on the Lock Screen. Took handles quick capture through the app, URL deep link, Siri, and Shortcuts/App Intents, while the Lock Screen Live Activity focuses on displaying and completing the current todo.
+iOS Live Activities can show information and run limited interactive App Intent controls, such as a check button on iOS 17 or later. They cannot present arbitrary free-text entry directly on the Lock Screen. Took handles quick capture through the app, URL deep link, Siri, and Shortcuts/App Intents, while the Lock Screen Live Activity focuses on displaying and completing todos.
