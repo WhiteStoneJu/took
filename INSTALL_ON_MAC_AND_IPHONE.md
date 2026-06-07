@@ -56,6 +56,8 @@ Then select the `TookWidgets` target and do the same:
 com.whitestoneju.took.TookWidgets
 ```
 
+If the iPhone is older than the Xcode project's current setting, open **General > Minimum Deployments** for both `Took` and `TookWidgets` and change it from `iOS 26.0` to `iOS 16.2` or the iPhone's current iOS version.
+
 ## 4. Configure App Group
 
 The app and widget must share the same App Group so the Live Activity button and shortcuts can read/write the same todo list.
@@ -144,6 +146,7 @@ Important limitation: iOS does not allow arbitrary keyboard text entry directly 
 - Confirm both targets have a Development Team.
 - Confirm the app and widget bundle identifiers are unique.
 - Confirm the same App Group is used in both entitlements and `SharedStore.swift`.
+- If Xcode says the iPhone iOS version is too low, lower **General > Minimum Deployments** for both targets.
 
 ### The widget or Live Activity cannot read todos
 

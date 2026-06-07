@@ -23,15 +23,16 @@ Core behavior:
 
 1. Open `Took.xcodeproj` in Xcode 26.
 2. Select the `Took` project and set your Development Team for both targets.
-3. Replace these placeholder identifiers if needed:
+3. In **General > Minimum Deployments**, if Xcode still shows `iOS 26.0` and the iPhone is older, change it to `iOS 16.2` or the iPhone's current iOS version.
+4. Replace these placeholder identifiers if needed:
    - App bundle ID: `com.example.took`
    - Widget bundle ID: `com.example.took.TookWidgets`
    - App Group: `group.com.example.took`
-4. If you change the App Group, update it in:
+5. If you change the App Group, update it in:
    - `Took/Took.entitlements`
    - `TookWidgets/TookWidgets.entitlements`
    - `TookShared/SharedStore.swift`
-5. Run the `Took` scheme on an iOS 16.2 or later simulator or device.
+6. Run the `Took` scheme on an iOS 16.2 or later simulator or device.
 
 For detailed Mac-to-iPhone installation steps, see `INSTALL_ON_MAC_AND_IPHONE.md`.
 
