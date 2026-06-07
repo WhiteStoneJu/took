@@ -86,7 +86,7 @@ If Xcode shows a provisioning error, let it register the App Group automatically
 
 On the iPhone:
 
-1. Update to iOS 26 or later.
+1. Update to iOS 16.2 or later.
 2. Connect the iPhone to the Mac with USB.
 3. Trust the Mac when iOS asks.
 4. Open **Settings > Privacy & Security > Developer Mode**.
@@ -110,7 +110,7 @@ After Took is installed:
 4. Lock the phone.
 5. The current todo should appear on the Lock Screen Live Activity.
 
-Tap **Done** on the Live Activity to complete the todo. iOS may require Face ID / unlock before the action runs.
+Tap the circle on the Live Activity to complete the todo. Direct Lock Screen completion requires iOS 17 or later, and iOS may require Face ID / unlock before the action runs. On iOS 16.2, tap the Live Activity to open Took and complete the todo in the app.
 
 ## 7. Add Todos From Shortcuts
 
@@ -158,13 +158,12 @@ TookShared/SharedStore.swift
 - Clean build folder with **Product > Clean Build Folder**.
 - Delete the app from the iPhone and run it again from Xcode.
 
-### Done button does not run while locked
+### Lock Screen check button does not run while locked
 
-iOS may require Face ID or device unlock before widget or Live Activity App Intent actions can mutate app state. This is expected system behavior.
+iOS may require Face ID or device unlock before widget or Live Activity App Intent actions can mutate app state. This is expected system behavior. Direct Live Activity check buttons require iOS 17 or later.
 
 ### The Action Button shortcut does not appear
 
 - Run Took once from Xcode.
 - Open the Shortcuts app and search for Took.
 - If needed, restart the iPhone after the first install.
-
