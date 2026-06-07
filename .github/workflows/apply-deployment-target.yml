@@ -1,0 +1,37 @@
+name: Apply deployment target patch
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-deployment-target.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch deployment target
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('Took.xcodeproj/project.pbxproj')
+          text = path.read_text()
+          updated = text.replace('IPHONEOS_DEPLOYMENT_TARGET = 26.0;', 'IPHONEOS_DEPLOYMENT_TARGET = 16.2;')
+          if text == updated:
+              raise SystemExit('No deployment target changes needed')
+          path.write_text(updated)
+          PY
+      - name: Commit patch and remove workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply-deployment-target.yml
+          git add Took.xcodeproj/project.pbxproj
+          git commit -m "Lower iOS deployment target"
+          git push
